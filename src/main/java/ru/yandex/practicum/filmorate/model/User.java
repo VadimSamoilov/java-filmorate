@@ -1,17 +1,13 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
 public class User {
-    @NotNull
-    @Min(1)
-
     private  Integer id;
     @Email(regexp = ".+[@].+[\\\\.].+",message = "Неверный формат Email")
     private  String email;

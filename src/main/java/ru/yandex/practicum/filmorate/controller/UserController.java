@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 @RestController
@@ -19,17 +20,17 @@ import java.util.List;
 public class UserController {
     private int id;
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
-    private HashMap<Integer,User> userBase = new HashMap<>() ;
+    private HashMap<Integer, User> userBase = new HashMap<>();
 
 
     @GetMapping("/users")
-    public List<User> findAllUsers(){
+    public List<User> findAllUsers() {
         return new ArrayList<>(userBase.values());
     }
 
     @PostMapping("/users")
-    public User createUser(@Valid @RequestBody User user){
-        if (validatorBirthDay(user)){
+    public User createUser(@Valid @RequestBody User user) throws CustomValidationException {
+        if (validatorBirthDay(user)) {
             user.setId(++id);
             log.info("Создан новый пользователь: " + user.toString());
             userBase.put(id, user);
@@ -42,19 +43,29 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public User updateUser(@Valid @RequestBody User user){
-        if (userBase.containsKey(user.getId()) && validatorBirthDay(user)) {
-            log.info("Информация о пользователе " + user.toString() + " обновлена.");
-            userBase.put(user.getId(), user);
+    public User updateUser(@Valid @RequestBody User user) throws CustomValidationException {
+        if (validatorBirthDay(user) && user.getId() > 0) {
+            if (userBase.containsKey(user.getId())) {
+                log.info("Информация о пользователе " + user.toString() + " обновлена.");
+                userBase.put(user.getId(), user);
+                return user;
             } else {
-            createUser(user);
+                createUser(user);
+                return user;
+            }
+        } else {
+            throw new CustomValidationException("Введены некорректные данные пользователя");
         }
-        return user;
     }
 
-    private Boolean validatorBirthDay (User user){
+
+    private Boolean validatorBirthDay(User user) {
         return !(user.getBirthday().isAfter(LocalDate.now()))
                 && !user.getLogin().isBlank()
-                && !(user.getName().isEmpty()) ;
+                && !user.getLogin().contains(" ")
+                && !(user.getLogin() == null)
+                && !(user.getName().isEmpty())
+                && !user.getEmail().isBlank()
+                && Pattern.compile("(.+@.+\\..+)").matcher(user.getEmail()).matches();
     }
 }

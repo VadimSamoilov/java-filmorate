@@ -10,7 +10,7 @@ import javax.validation.constraints.*;
 
 
 @Data
-@AllArgsConstructor
+
 public class Film {
     public static final int LENGTH_DESCRIPTION = 200;
 
@@ -21,8 +21,6 @@ public class Film {
         this.duration = duration;
     }
 
-    @NotNull
-    @Min(1)
     private int id;
     @NotBlank(message = "Название фильма не может быть пустым")
     private final String name;

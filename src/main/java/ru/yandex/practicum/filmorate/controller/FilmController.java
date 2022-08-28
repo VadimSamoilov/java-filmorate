@@ -40,14 +40,19 @@ public class FilmController {
     }
 
     @PutMapping("/films")
-    public Film update(@Valid @RequestBody Film film) {
-        if (filmBase.containsKey(film.getId())&&validateRelies(film)) {
-            log.info("Обновление фильма: "+ film.toString());
-            filmBase.put(film.getId(), film);
+    public Film update(@Valid @RequestBody Film film) throws CustomValidationException{
+        if (validateRelies(film) && film.getId()>0){
+            if (filmBase.containsKey(film.getId())) {
+                log.info("Обновление фильма: "+ film.toString());
+                filmBase.put(film.getId(), film);
+                return film;
+            } else {
+                create(film);
+                return film;
+            }
         } else {
-            create(film);
+            throw new CustomValidationException("Ошибка при обновлении фильма");
         }
-        return film;
     }
 
     private Boolean validateRelies(Film film) {
