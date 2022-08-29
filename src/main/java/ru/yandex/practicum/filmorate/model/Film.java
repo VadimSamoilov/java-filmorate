@@ -12,14 +12,7 @@ import javax.validation.constraints.*;
 @Data
 
 public class Film {
-    public static final int LENGTH_DESCRIPTION = 200;
-
-    public Film(String name, String description, LocalDate releaseDate, double duration) {
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-    }
+    private static final int LENGTH_DESCRIPTION = 200;
 
     private int id;
     @NotBlank(message = "Название фильма не может быть пустым")
@@ -30,5 +23,12 @@ public class Film {
     private final LocalDate releaseDate;
     @Positive (message = "Продолжительсность фильма болжна быть положительной")
     private double duration;
+
+    public Film(String name, String description, LocalDate releaseDate, double duration) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+    }
 
 }

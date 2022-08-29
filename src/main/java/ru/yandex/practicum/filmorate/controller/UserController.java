@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -12,15 +13,16 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 
 @RestController
+@Slf4j
 
 public class UserController {
     private int id;
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
-    private HashMap<Integer, User> userBase = new HashMap<>();
+    private Map<Integer, User> userBase = new HashMap<>();
 
 
     @GetMapping("/users")
@@ -29,43 +31,36 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public User createUser(@Valid @RequestBody User user) throws CustomValidationException {
+    public User createUser(@Valid @RequestBody User user) {
+        user.setId(++id);
         if (validatorBirthDay(user)) {
-            user.setId(++id);
             log.info("Создан новый пользователь: " + user.toString());
             userBase.put(id, user);
-            return user;
-        } else {
-            log.info("Ошибка при создании нового пользователя: " + user.toString());
-            throw new CustomValidationException("Введены некорректные данные пользователя");
-
         }
+        return user;
     }
 
     @PutMapping("/users")
-    public User updateUser(@Valid @RequestBody User user) throws CustomValidationException {
-        if (validatorBirthDay(user) && user.getId() > 0) {
+    public User updateUser(@Valid @RequestBody User user) {
+        if (validatorBirthDay(user)) {
             if (userBase.containsKey(user.getId())) {
                 log.info("Информация о пользователе " + user.toString() + " обновлена.");
                 userBase.put(user.getId(), user);
-                return user;
             } else {
                 createUser(user);
-                return user;
             }
-        } else {
-            throw new CustomValidationException("Введены некорректные данные пользователя");
         }
+        return user;
     }
 
 
     private Boolean validatorBirthDay(User user) {
-        return !(user.getBirthday().isAfter(LocalDate.now()))
-                && !user.getLogin().isBlank()
-                && !user.getLogin().contains(" ")
-                && !(user.getLogin() == null)
-                && !(user.getName().isEmpty())
-                && !user.getEmail().isBlank()
-                && Pattern.compile("(.+@.+\\..+)").matcher(user.getEmail()).matches();
+        if ((user.getBirthday().isBefore(LocalDate.now()) && user.getId() > 0)) {
+            return true;
+        } else {
+            log.info("Ошибка при создании нового пользователя: " + user.toString());
+            throw new CustomValidationException("Введены некорректные данные пользователя");
+        }
+
     }
 }

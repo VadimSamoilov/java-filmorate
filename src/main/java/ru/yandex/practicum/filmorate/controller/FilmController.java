@@ -1,10 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.exeption.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -12,14 +11,15 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
+@Slf4j
 public class FilmController {
 
     private int id;
     public static final LocalDate RELISE = LocalDate.of(1895, Month.DECEMBER, 28);
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
-    private HashMap<Integer, Film> filmBase = new HashMap<>();
+    private Map<Integer, Film> filmBase = new HashMap<>();
 
     @GetMapping("/films")
     public List<Film> findAllFilms() {
@@ -28,38 +28,33 @@ public class FilmController {
 
     @PostMapping("/films")
     public Film create(@Valid @RequestBody Film film) {
-        if (validateRelies(film)) {
-            log.info("Добавлен новый фильм: "+film.toString());
-            film.setId(++id);
+        film.setId(++id);
+        if (validateFilms(film)) {
+            log.info("Добавлен новый фильм: " + film.toString());
             filmBase.put(film.getId(), film);
-            return film;
-        } else {
-            log.info("Не удалось добавить фильм: " + film.toString() + " в базу.");
-             throw new CustomValidationException("Ошибка при добавлении фильма");
         }
+        return film;
     }
 
     @PutMapping("/films")
-    public Film update(@Valid @RequestBody Film film) throws CustomValidationException{
-        if (validateRelies(film) && film.getId()>0){
+    public Film update(@Valid @RequestBody Film film) {
+        if (validateFilms(film)) {
             if (filmBase.containsKey(film.getId())) {
-                log.info("Обновление фильма: "+ film.toString());
+                log.info("Обновление фильма: " + film.toString());
                 filmBase.put(film.getId(), film);
-                return film;
             } else {
                 create(film);
-                return film;
             }
+        }
+        return film;
+    }
+
+    private Boolean validateFilms(Film film) {
+        if (RELISE.isBefore(film.getReleaseDate()) && film.getId() > 0) {
+            return true;
         } else {
-            throw new CustomValidationException("Ошибка при обновлении фильма");
+            log.info("Не удалось добавить фильм: " + film.toString() + " в базу.");
+            throw new CustomValidationException("Ошибка при добавлении фильма");
         }
     }
-
-    private Boolean validateRelies(Film film) {
-        return RELISE.isBefore(film.getReleaseDate())
-                && !film.getName().isBlank()
-                && !(film.getDuration()<0)
-                && !(film.getDescription().length()>200);
-    }
-
 }
