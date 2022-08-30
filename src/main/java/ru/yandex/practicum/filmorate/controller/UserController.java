@@ -55,7 +55,7 @@ public class UserController {
 
 
     private Boolean validatorBirthDay(User user) {
-        if ((user.getBirthday().isBefore(LocalDate.now()) && user.getId() > 0)) {
+        if ((user.getBirthday().isBefore(LocalDate.now()) && user.getId() > 0) && user.getName() !=null) {
             return true;
         } else {
             log.info("Ошибка при создании нового пользователя: " + user.toString());
