@@ -7,6 +7,10 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
 import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -14,14 +18,17 @@ import java.time.LocalDate;
 class FilmorateApplicationTests {
 
     private User user1;
-    private FilmController filmController = new FilmController();
-    private UserController userController = new UserController();
+
+    // разобрать тесты
+    private FilmController filmController = new FilmController(new FilmService(new InMemoryFilmStorage(),
+            new UserService(new InMemoryUserStorage())));
+    private UserController userController = new UserController(new UserService(new InMemoryUserStorage()));
 
     @Test
     void dateOfBirthIsInTheFutureAndEmptyLogin() {
         CustomValidationException customExeption = Assertions.assertThrows(CustomValidationException.class, () -> {
-            userController.createUser(new User("vadim@smartpe.ru", "", "vadim",
-                    LocalDate.of(2030, 8, 29)));
+            userController.createNewUser(new User("vadim@smartpe.ru", "", "vadim",
+                    LocalDate.of(2030, 8, 29))) ;
         }, "Создан новый пользователь");
 
         Assertions.assertEquals("Введены некорректные данные пользователя", customExeption.getMessage());
@@ -31,8 +38,8 @@ class FilmorateApplicationTests {
     @Test
     void releaseDateBeyondLimits() {
         CustomValidationException customExeption = Assertions.assertThrows(CustomValidationException.class, () -> {
-            filmController.create(new Film("", "Фильм классный, там тонет Дикаприо",
-                    LocalDate.of(1894, 6, 11), 110));
+            filmController.create(new Film("5",  LocalDate.of(1894, 6, 11),"Фильм классный, там тонет Дикаприо",
+                    110,4));
         }, "Добавлен новый фильм");
 
         Assertions.assertEquals("Ошибка при добавлении фильма", customExeption.getMessage());
