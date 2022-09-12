@@ -1,7 +1,10 @@
 package ru.yandex.practicum.filmorate.controller;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -10,24 +13,22 @@ import ru.yandex.practicum.filmorate.exeption.FilmNotFoundExeption;
 import ru.yandex.practicum.filmorate.exeption.UserNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
+import javax.validation.ConstraintViolationException;
+
 
 @RestControllerAdvice
+@Slf4j
 public class ErrorHandler {
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleInvalidEmailException(final CustomValidationException e) {
-        return new ErrorResponse(
-                e.getMessage()
-        );
+    public ResponseEntity<String> handleInvalidEmailException(final CustomValidationException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse FilmPostNotFoundException(final FilmNotFoundExeption e) {
-        return new ErrorResponse(
-                e.getMessage()
-        );
+
+    public ResponseEntity<String> handleFilmNotFound(final FilmNotFoundExeption e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
@@ -38,7 +39,6 @@ public class ErrorHandler {
         );
     }
 
-
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Throwable e) {
@@ -46,4 +46,19 @@ public class ErrorHandler {
                 "Произошла непредвиденная ошибка."
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleThrowable(final MethodArgumentNotValidException e) {
+        return new ErrorResponse(
+                e.getMessage()
+        );
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<String> exc(ConstraintViolationException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+
 }

@@ -7,19 +7,20 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
 import ru.yandex.practicum.filmorate.exeption.UserNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class UserService {
 
-    private final InMemoryUserStorage inMemoryUserStorage;
+    private final UserStorage inMemoryUserStorage;
 
     @Autowired
-    public UserService(InMemoryUserStorage inMemoryUserStorage) {
+    public UserService(UserStorage inMemoryUserStorage) {
         this.inMemoryUserStorage = inMemoryUserStorage;
     }
 
@@ -32,7 +33,12 @@ public class UserService {
     }
 
     public User update(User user) {
-        return inMemoryUserStorage.updateUser(user);
+        if (validatorBirthDay(user)) {
+            return inMemoryUserStorage.updateUser(user);
+        } else {
+            log.info("Ошибка при создании нового пользователя: " + user.toString());
+            throw new UserNotFoundExeption("Введены некорректные данные пользователя");
+        }
     }
 
     public User findUserById(Long idUser) {
@@ -62,7 +68,6 @@ public class UserService {
         } else throw new CustomValidationException("Неудалось удалить пользователей из друзей");
     }
 
-
     // поиск всех друзей пользователя с определенным id
     public List<User> findUserIsFriends(Long idUser) {
         return inMemoryUserStorage.getFriends(idUser);
@@ -70,29 +75,29 @@ public class UserService {
 
     // поиск общих друзей с другим пользователем
     public List<User> findMutualFriendsWithTheUser(Long id, Long otherId) {
-        List<User> mutualFriends = new ArrayList<>();
-        if (validationNotNullAndFindUsers(id, otherId)) {
-            List<User> oneUser = findUserIsFriends(id);
-            List<User> friend = findUserIsFriends(otherId);
-            if (!(oneUser.isEmpty()) && !(friend.isEmpty())) {
-                for (int i = 0; i < oneUser.size(); i++) {
-                    for (int j = 0; j < friend.size(); j++) {
-                        if (oneUser.get(i).getId().equals(friend.get(j).getId())) {
-                            mutualFriends.add(oneUser.get(i));
-                        }
-                    }
-                }
-            }return mutualFriends;
-        } else throw new CustomValidationException("Ошибка входящих данных");
+        return findUserById(id).getFriendsId().stream().filter(findUserById(otherId).getFriendsId()::contains).map(this::findUserById).collect(Collectors.toList());
     }
 
-        private Boolean validationNotNullAndFindUsers (Long id, Long friendId){
-            if ((id > 0) && (id != null) && (friendId > 0) && (friendId != null)) {
-                if ((inMemoryUserStorage.getUser(id) != null) && (inMemoryUserStorage.getUser(friendId) != null)) {
-                    return true;
-                } else throw new UserNotFoundExeption("Пользователи не найдены");
-            } else throw new UserNotFoundExeption("Неверный формат данных");
-        }
+    private Boolean validationNotNullAndFindUsers(Long id, Long friendId) {
+        if ((id > 0) && (id != null) && (friendId > 0) && (friendId != null)) {
+            if ((inMemoryUserStorage.getUser(id) != null) && (inMemoryUserStorage.getUser(friendId) != null)) {
+                return true;
+            } else throw new UserNotFoundExeption("Пользователи не найдены");
+        } else throw new UserNotFoundExeption("Неверный формат данных");
     }
+
+    private Boolean validatorBirthDay(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+        if (user.getId() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+}
 
 

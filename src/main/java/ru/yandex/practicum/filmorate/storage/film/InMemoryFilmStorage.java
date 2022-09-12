@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
-import ru.yandex.practicum.filmorate.exeption.FilmNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.MyComporator;
 
@@ -18,8 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 
 public class InMemoryFilmStorage implements FilmStorage {
-    private Long id = Long.valueOf(0);
-    public static final LocalDate RELISE = LocalDate.of(1895, Month.DECEMBER, 28);
+
     private Map<Long, Film> filmBase = new HashMap<>();
 
     @Override
@@ -29,18 +27,13 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> findPopularFilm(Integer count) {
-        int filmCount = 0;
-        if (count == null || count == 0) {
-            filmCount = 10;
-        } else {
-            filmCount = count;
-        }
         return filmBase.values().stream()
                 .sorted(new MyComporator().reversed())
-                .limit(filmCount)
+                .limit(count)
                 .collect(Collectors.toList());
     }
 
+    @Override
     public Map<Long, Film> getFilmBase() {
         return new HashMap<>(filmBase);
     }
@@ -48,11 +41,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     // создание нового фильма и добавление его в хранилище
     @Override
     public Film create(Film film) {
-        film.setId(++id);
-        if (validateFilms(film)) {
-            log.info("Добавлен новый фильм: " + film.toString());
-            filmBase.put(film.getId(), film);
-        }
+        log.info("Добавлен новый фильм: " + film.toString());
+        filmBase.put(film.getId(), film);
         return film;
     }
 
@@ -67,27 +57,13 @@ public class InMemoryFilmStorage implements FilmStorage {
     //Обновление информации о фильме
     @Override
     public Film update(Film film) {
-        if (validateFilms(film)) {
-            if (filmBase.containsKey(film.getId())) {
-                log.info("Обновление фильма: " + film.toString());
-                filmBase.put(film.getId(), film);
-                id--; //я хз почему у меня увеличивается счетчик ID. Но без этой строки постман не пропускает проверку.
-            } else {
-                create(film);
-            }
+        if (filmBase.containsKey(film.getId())) {
+            log.info("Обновление фильма: " + film.toString());
+            filmBase.put(film.getId(), film);
+        } else {
+            create(film);
         }
         return film;
-    }
-
-    // проверка на валидность переданного фильма
-    private Boolean validateFilms(Film film) {
-        if (RELISE.isBefore(film.getReleaseDate())) {
-            if (film.getId() > 0) {
-                return true;
-            } else throw new FilmNotFoundExeption("Релиз фильма не может быть раньше " + RELISE);
-        } else {
-            throw new CustomValidationException("Ошибка при добавлении фильма");
-        }
     }
 
 }

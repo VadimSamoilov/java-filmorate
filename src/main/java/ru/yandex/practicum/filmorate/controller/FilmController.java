@@ -2,16 +2,19 @@ package ru.yandex.practicum.filmorate.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 
 import javax.validation.Valid;
-import java.util.ArrayList;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
+@Validated
 @RestController
+
 public class FilmController {
 
     private FilmService filmService;
@@ -37,8 +40,8 @@ public class FilmController {
     }
 
     @DeleteMapping("/films")
-    public void remove(@Valid @RequestBody Film film) {
-        filmService.deleteFilm(film);
+    public void remove(@Valid @RequestBody Long ifFilm) {
+        filmService.deleteFilm(ifFilm);
     }
 
     @GetMapping("/films/{id}")
@@ -57,7 +60,7 @@ public class FilmController {
     }
 
     @GetMapping("/films/popular")
-    public List<Film> findPopularFilm(@RequestParam(value = "count", defaultValue = "0", required = false) Integer count) {
+    public List<Film> findPopularFilm(@RequestParam(value = "count", defaultValue = "10", required = false) @Positive Integer count) {
         return filmService.findPopularFilm(count);
     }
 
