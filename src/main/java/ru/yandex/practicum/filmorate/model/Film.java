@@ -24,7 +24,7 @@ public class Film {
     private double duration;
 
     private Set<Long> likeFilmsIdUser;
-    private int rate;
+    private Integer rate;
 
 
     public Set<Long> getLikeFilmsIdUser() {

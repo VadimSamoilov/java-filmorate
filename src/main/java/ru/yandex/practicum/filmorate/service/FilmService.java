@@ -72,7 +72,7 @@ public class FilmService {
     public void removeLikeFilm(Long idFilm, Long idUser) {
         if (validatorFilmIdAndUserId(idFilm, idUser)) {
             if (findFilmById(idFilm).getLikeFilmsIdUser().contains(idUser)) {
-                findFilmById(idFilm).getLikeFilmsIdUser().remove(idUser);
+                findFilmById(idFilm).removeLike(idUser);
             } else throw new FilmNotFoundExeption("Фильм не найдет в избранном у пользователя");
         } else throw new CustomValidationException("Ошибка при удалении Like. Проверьте " +
                 "правильность введенных данных");
