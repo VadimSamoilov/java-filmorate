@@ -3,14 +3,14 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
+import ru.yandex.practicum.filmorate.exeption.FilmNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.MyComporator;
 
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -22,7 +22,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film getFilm(Long id) {
-        return filmBase.get(id);
+        return Optional.of(filmBase.get(id)).get();
     }
 
     @Override
@@ -49,21 +49,15 @@ public class InMemoryFilmStorage implements FilmStorage {
     // Удаление фильма из хранилища
     @Override
     public void delete(Film film) {
-        if (filmBase.containsKey(film.getId())) {
             filmBase.remove(film.getId());
-        } else throw new CustomValidationException("Невозможно удалить фильм: не найдем в базе");
     }
 
     //Обновление информации о фильме
     @Override
     public Film update(Film film) {
-        if (filmBase.containsKey(film.getId())) {
             log.info("Обновление фильма: " + film.toString());
             filmBase.put(film.getId(), film);
-        } else {
-            create(film);
-        }
-        return film;
+            return film;
     }
 
 }

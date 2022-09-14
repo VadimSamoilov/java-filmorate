@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
+import ru.yandex.practicum.filmorate.exeption.FilmNotFoundExeption;
 import ru.yandex.practicum.filmorate.exeption.UserNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -28,13 +29,9 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        if (userBase.containsKey(user.getId())) {
             log.info("Информация о пользователе " + user.toString() + " обновлена.");
             userBase.put(user.getId(), user);
-        } else {
-            createUser(user);
-        }
-        return user;
+            return user;
     }
 
     // возвращаем список друзей пользователя
@@ -47,9 +44,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User getUser(long id) {
-        if (userBase.containsKey(id)){
-            return userBase.get(id);
-        } else throw new UserNotFoundExeption("Пользователь не найден");
+            return Optional.of(userBase.get(id)).get();
     }
 
     @Override

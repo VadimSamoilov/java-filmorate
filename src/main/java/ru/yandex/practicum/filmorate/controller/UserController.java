@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -10,15 +11,10 @@ import java.util.List;
 
 
 @RestController
-
+@RequiredArgsConstructor
 public class UserController {
 
-        private final UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserService userService;
 
     @GetMapping("/users")
     public List<User> findAllUsers() {
@@ -59,7 +55,7 @@ public class UserController {
 
     @GetMapping("/users/{id}/friends/common/{otherId}")
     public List<User> findMutualFriends(@PathVariable("id") Long id,
-                                        @PathVariable("otherId") Long otherId){
+                                        @PathVariable("otherId") Long otherId) {
         return userService.findMutualFriendsWithTheUser(id, otherId);
     }
 

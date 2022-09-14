@@ -22,18 +22,21 @@ public class ErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<String> handleInvalidEmailException(final CustomValidationException e) {
+        log.info(e.getMessage());
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
 
     public ResponseEntity<String> handleFilmNotFound(final FilmNotFoundExeption e) {
+        log.info(e.getMessage());
         return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse UserPostNotFoundException(final UserNotFoundExeption e) {
+        log.info(e.getMessage());
         return new ErrorResponse(
                 e.getMessage()
         );
@@ -42,6 +45,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Throwable e) {
+        log.info(e.getMessage());
         return new ErrorResponse(
                 "Произошла непредвиденная ошибка."
         );
@@ -50,6 +54,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleThrowable(final MethodArgumentNotValidException e) {
+        log.info(e.getMessage());
         return new ErrorResponse(
                 e.getMessage()
         );
@@ -57,6 +62,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<String> exc(ConstraintViolationException ex) {
+        log.info(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

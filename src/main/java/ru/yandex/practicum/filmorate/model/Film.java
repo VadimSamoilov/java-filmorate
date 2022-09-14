@@ -41,23 +41,19 @@ public class Film {
 
     }
 
-    public void addLike() {
-        rate++;
-    }
 
     public int getRate() {
         return rate;
     }
 
-    public void removeLike() {
-        rate--;
-    }
 
     public void addlikeFilmUser(Long idUser) {
         likeFilmsIdUser.add(idUser);
+        rate =likeFilmsIdUser.size();
     }
 
     public void removeLike(Long id) {
         likeFilmsIdUser.remove(id);
+        rate =likeFilmsIdUser.size();
     }
 }
