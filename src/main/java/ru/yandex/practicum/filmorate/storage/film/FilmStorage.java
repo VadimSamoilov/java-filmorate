@@ -16,6 +16,6 @@ public interface FilmStorage {
     Film getFilm(Long id);
 
     List<Film> findPopularFilm(Integer count);
-    Map<Long, Film> getFilmBase();
+    List<Film> getFilmBase();
 
 }

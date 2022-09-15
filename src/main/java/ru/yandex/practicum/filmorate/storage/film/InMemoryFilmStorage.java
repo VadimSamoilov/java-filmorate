@@ -7,10 +7,7 @@ import ru.yandex.practicum.filmorate.exeption.FilmNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.MyComporator;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -22,7 +19,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film getFilm(Long id) {
-        return Optional.of(filmBase.get(id)).get();
+        return Optional.ofNullable(filmBase.get(id)).get();
     }
 
     @Override
@@ -34,8 +31,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Map<Long, Film> getFilmBase() {
-        return new HashMap<>(filmBase);
+    public List <Film> getFilmBase() {
+        return new ArrayList<>(filmBase.values());
     }
 
     // создание нового фильма и добавление его в хранилище

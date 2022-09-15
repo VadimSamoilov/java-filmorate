@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.exeption.UserNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,7 +22,7 @@ public class UserService {
     private final UserStorage memoryUserStorage;
 
     public List<User> findAllUsers() {
-        return new ArrayList<>(memoryUserStorage.getUsersBase().values());
+        return memoryUserStorage.getUsersBase();
     }
 
     public User createUser(User user) {
@@ -31,37 +30,33 @@ public class UserService {
     }
 
     public User update(User user) {
-        if (validatorName(user) && (checkingThePresenceOfUserInTheRepository(user.getId()))) {
-            return memoryUserStorage.updateUser(user);
-        } else {
-            log.info("Ошибка при обновлении информации пользователя: " + user.toString());
-            throw new UserNotFoundExeption("Введены некорректные данные пользователя. Пользователь не найден в базе");
-        }
+        validatorName(user);
+        checkingThePresenceOfUserInTheRepository(user);
+        return memoryUserStorage.updateUser(user);
     }
 
     public User findUserById(Long idUser) {
-        return Optional.ofNullable(memoryUserStorage.getUsersBase().get(idUser)).orElseThrow(() -> new UserNotFoundExeption("Данный пользователь не существует"));
+        return Optional.ofNullable(idUser).map(memoryUserStorage::getUser).get()
+                .orElseThrow(() -> new UserNotFoundExeption("Данный пользователь не существует"));
     }
 
     // добавление пользователей в друзья
     public void addToFriendsByIdUsers(Long idUser, Long friendId) {
-        if (validationNotNullAndFindUsers(idUser, friendId)) {
-            if (!(memoryUserStorage.getUser(idUser).getFriendsId().contains(friendId))) {
-                memoryUserStorage.getUser(idUser).addFriends(friendId);
-                memoryUserStorage.getUser(friendId).addFriends(idUser);
-            } else throw new CustomValidationException("Пользователи уже состоят в друзьях");
-        } else throw new CustomValidationException("Неудалось добавить пользователей в друзья");
+        validationNotNullAndFindUsers(idUser, friendId);
+        if (!(memoryUserStorage.getUser(idUser).get().getFriendsId().contains(friendId))) {
+            memoryUserStorage.getUser(idUser).get().addFriends(friendId);
+            memoryUserStorage.getUser(friendId).get().addFriends(idUser);
+        } else throw new CustomValidationException("Пользователи уже состоят в друзьях");
     }
 
     public void deleteFriendsByIdUsers(Long idUser, Long friendId) {
-        if (validationNotNullAndFindUsers(idUser, friendId)) {
-            if (memoryUserStorage.getUser(idUser).getFriendsId().contains(friendId)) {
-                memoryUserStorage.getUser(idUser).getFriendsId().remove(friendId);
-                memoryUserStorage.getUser(friendId).getFriendsId().remove(idUser);
-            } else {
-                throw new CustomValidationException("Пользователи не состоят в друзьях");
-            }
-        } else throw new CustomValidationException("Неудалось удалить пользователей из друзей");
+        validationNotNullAndFindUsers(idUser, friendId);
+        if (memoryUserStorage.getUser(idUser).get().getFriendsId().contains(friendId)) {
+            memoryUserStorage.getUser(idUser).get().getFriendsId().remove(friendId);
+            memoryUserStorage.getUser(friendId).get().getFriendsId().remove(idUser);
+        } else {
+            throw new CustomValidationException("Пользователи не состоят в друзьях");
+        }
     }
 
     // поиск всех друзей пользователя с определенным id
@@ -76,31 +71,32 @@ public class UserService {
                 .map(this::findUserById).collect(Collectors.toList());
     }
 
-    private Boolean validationNotNullAndFindUsers(Long id, Long friendId) {
-        if ((id > 0) && (id != null) && (friendId > 0) && (friendId != null)) {
-            if ((checkingThePresenceOfUserInTheRepository(id)) && (checkingThePresenceOfUserInTheRepository(friendId))) {
-                return true;
-            } else throw new UserNotFoundExeption("Пользователи не найдены");
-        } else throw new UserNotFoundExeption("Неверный формат данных");
+    // проверка при добавлении пользователя в друзья
+    private void validationNotNullAndFindUsers(Long idUser, Long friendId) {
+        Optional.ofNullable(idUser).filter(p -> (p > 0) && (p != null))
+                .orElseThrow(() -> new UserNotFoundExeption("Неверный формат данных"));
+        Optional.ofNullable(friendId).filter(p -> (p > 0) && (p != null))
+                .orElseThrow(() -> new UserNotFoundExeption("Неверный формат данных"));
+        Optional.ofNullable(idUser).filter(p -> memoryUserStorage.getUser(p) != null)
+                .orElseThrow(() -> new UserNotFoundExeption("Пользователь не существует"));
+        Optional.ofNullable(friendId).filter(p -> memoryUserStorage.getUser(p) != null)
+                .orElseThrow(() -> new UserNotFoundExeption("Пользователь не существует"));
+
     }
 
-    private Boolean validatorName(User user) {
+    //проверка поля name
+    private void validatorName(User user) {
+        Optional.ofNullable(user).map(User::getId).filter(p -> p > 0)
+                .orElseThrow(() -> new UserNotFoundExeption("ID не может быть отрицательным."));
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        if (user.getId() > 0) {
-            return true;
-        } else {
-            return false;
-        }
-
     }
 
-    private Boolean checkingThePresenceOfUserInTheRepository(Long id) {
-        if (memoryUserStorage.getUsersBase().containsKey(id)) {
-            return true;
-        }
-        return false;
+    // проверка есть ли пользователь в базе
+    private void checkingThePresenceOfUserInTheRepository(User user) {
+        Optional.ofNullable(user).map(User::getId).filter(p -> findUserById(p) != null)
+                .orElseThrow(() -> new FilmNotFoundExeption("Ошибка валидации фильма"));
     }
 
 }

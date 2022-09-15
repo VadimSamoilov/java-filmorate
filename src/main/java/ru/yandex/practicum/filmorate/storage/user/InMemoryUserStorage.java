@@ -23,28 +23,32 @@ public class InMemoryUserStorage implements UserStorage {
         } else throw new CustomValidationException("Данный пользователь не существует");
     }
 
-    public Map<Long, User> getUsersBase() {
-        return new HashMap<>(userBase);
+    public List<User> getUsersBase() {
+        return new ArrayList<>(userBase.values());
     }
 
     @Override
     public User updateUser(User user) {
-            log.info("Информация о пользователе " + user.toString() + " обновлена.");
-            userBase.put(user.getId(), user);
-            return user;
+        log.info("Информация о пользователе " + user.toString() + " обновлена.");
+        userBase.put(user.getId(), user);
+        return user;
     }
 
     // возвращаем список друзей пользователя
     @Override
     public List<User> getFriends(long id) {
-        return getUser(id).getFriendsId().stream()
-                .map(this::getUser).collect(Collectors.toList());
+        return getUser(id).get().getFriendsId()
+                .stream()
+                .map(this::getUser)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
 
     @Override
-    public User getUser(long id) {
-            return Optional.of(userBase.get(id)).get();
+    public Optional<User> getUser(long id) {
+        return Optional.ofNullable(userBase.get(id));
     }
 
     @Override
