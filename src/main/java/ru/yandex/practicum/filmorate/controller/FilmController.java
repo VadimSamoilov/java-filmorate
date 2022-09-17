@@ -35,12 +35,12 @@ public class FilmController {
     }
 
     @DeleteMapping("/films")
-    public void remove(@Valid @RequestBody Long ifFilm) {
-        filmService.deleteFilm(ifFilm);
+    public void remove(@RequestBody Long iFilm) {
+        filmService.deleteFilm(iFilm);
     }
 
     @GetMapping("/films/{id}")
-    public Film findById(@Valid @PathVariable("id") Long id) {
+    public Film findById(@PathVariable("id") Long id) {
         return filmService.findFilmById(id);
     }
 

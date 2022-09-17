@@ -2,8 +2,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
-import ru.yandex.practicum.filmorate.exeption.FilmNotFoundExeption;
+
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.MyComporator;
 
@@ -16,10 +15,11 @@ import java.util.stream.Collectors;
 public class InMemoryFilmStorage implements FilmStorage {
 
     private Map<Long, Film> filmBase = new HashMap<>();
-
+    private Long id = 0L;
     @Override
-    public Film getFilm(Long id) {
-        return Optional.ofNullable(filmBase.get(id)).get();
+    public Optional<Film> getFilm(Long id) {
+        log.info(String.valueOf(filmBase.get(id)));
+        return Optional.ofNullable(filmBase.get(id));
     }
 
     @Override
@@ -31,7 +31,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List <Film> getFilmBase() {
+    public List<Film> getFilmBase() {
         return new ArrayList<>(filmBase.values());
     }
 
@@ -39,6 +39,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film create(Film film) {
         log.info("Добавлен новый фильм: " + film.toString());
+        film.setId(++id);
         filmBase.put(film.getId(), film);
         return film;
     }
@@ -46,15 +47,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     // Удаление фильма из хранилища
     @Override
     public void delete(Film film) {
-            filmBase.remove(film.getId());
+        filmBase.remove(film.getId());
     }
 
     //Обновление информации о фильме
     @Override
     public Film update(Film film) {
-            log.info("Обновление фильма: " + film.toString());
-            filmBase.put(film.getId(), film);
-            return film;
+        log.info("Обновление фильма: " + film.toString());
+        delete(film);
+        filmBase.put(film.getId(), film);
+        return film;
     }
 
 }
