@@ -1,60 +1,62 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.exeption.*;
+import ru.yandex.practicum.filmorate.service.FilmService;
+
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.ArrayList;
-import java.util.HashMap;
+import javax.validation.constraints.Positive;
 import java.util.List;
-import java.util.Map;
 
+@Validated
 @RestController
-@Slf4j
+@RequiredArgsConstructor
 public class FilmController {
 
-    private int id;
-    public static final LocalDate RELISE = LocalDate.of(1895, Month.DECEMBER, 28);
-    private Map<Integer, Film> filmBase = new HashMap<>();
+    private final FilmService filmService;
 
     @GetMapping("/films")
     public List<Film> findAllFilms() {
-        return new ArrayList<>(filmBase.values());
+        return filmService.findAllFilmsInStorage();
     }
 
     @PostMapping("/films")
     public Film create(@Valid @RequestBody Film film) {
-        film.setId(++id);
-        if (validateFilms(film)) {
-            log.info("Добавлен новый фильм: " + film.toString());
-            filmBase.put(film.getId(), film);
-        }
-        return film;
+        return filmService.createNewFilm(film);
     }
 
     @PutMapping("/films")
     public Film update(@Valid @RequestBody Film film) {
-        if (validateFilms(film)) {
-            if (filmBase.containsKey(film.getId())) {
-                log.info("Обновление фильма: " + film.toString());
-                filmBase.put(film.getId(), film);
-            } else {
-                create(film);
-            }
-        }
-        return film;
+        return filmService.updateFilm(film);
     }
 
-    private Boolean validateFilms(Film film) {
-        if (RELISE.isBefore(film.getReleaseDate()) && film.getId() > 0) {
-            return true;
-        } else {
-            log.info("Не удалось добавить фильм: " + film.toString() + " в базу.");
-            throw new CustomValidationException("Ошибка при добавлении фильма");
-        }
+    @DeleteMapping("/films")
+    public void remove(@RequestBody Long iFilm) {
+        filmService.deleteFilm(iFilm);
     }
+
+    @GetMapping("/films/{id}")
+    public Film findById(@PathVariable("id") Long id) {
+        return filmService.findFilmById(id);
+    }
+
+    @PutMapping("/films/{id}/like/{userId}")
+    public void addLike(@PathVariable("id") Long id, @PathVariable("userId") Long userId) {
+        filmService.addLikeFilm(id, userId);
+    }
+
+    @DeleteMapping("/films/{id}/like/{userId}")
+    public void removeLike(@PathVariable("id") Long id, @PathVariable("userId") Long userId) {
+        filmService.removeLikeFilm(id, userId);
+    }
+
+    @GetMapping("/films/popular")
+    public List<Film> findPopularFilm(@RequestParam(value = "count", defaultValue = "10", required = false) @Positive Integer count) {
+        return filmService.findPopularFilm(count);
+    }
+
 }
