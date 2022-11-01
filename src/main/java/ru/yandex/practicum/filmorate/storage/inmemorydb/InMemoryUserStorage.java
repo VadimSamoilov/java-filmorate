@@ -1,11 +1,10 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.storage.inmemorydb;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
-import ru.yandex.practicum.filmorate.exeption.FilmNotFoundExeption;
-import ru.yandex.practicum.filmorate.exeption.UserNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.inmemorydb.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,7 +29,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User updateUser(User user) {
         log.info("Информация о пользователе " + user.toString() + " обновлена.");
-        userBase.put(user.getId(), user);
+        userBase.put(user.getUser_id(), user);
         return user;
     }
 
@@ -53,7 +52,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User createUser(User user) {
-        user.setId(++id);
+        user.setUser_id(++id);
         log.info("Создан новый пользователь: " + user.toString());
         userBase.put(id, user);
         return user;

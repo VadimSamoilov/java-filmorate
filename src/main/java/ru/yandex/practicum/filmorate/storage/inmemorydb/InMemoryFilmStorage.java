@@ -1,10 +1,11 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.storage.inmemorydb;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.MyComporator;
+import ru.yandex.practicum.filmorate.storage.inmemorydb.FilmStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,15 +40,15 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film create(Film film) {
         log.info("Добавлен новый фильм: " + film.toString());
-        film.setId(++id);
-        filmBase.put(film.getId(), film);
+        film.setFilm_id(++id);
+        filmBase.put(film.getFilm_id(), film);
         return film;
     }
 
     // Удаление фильма из хранилища
     @Override
     public void delete(Film film) {
-        filmBase.remove(film.getId());
+        filmBase.remove(film.getFilm_id());
     }
 
     //Обновление информации о фильме
@@ -55,7 +56,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film update(Film film) {
         log.info("Обновление фильма: " + film.toString());
         delete(film);
-        filmBase.put(film.getId(), film);
+        filmBase.put(film.getFilm_id(), film);
         return film;
     }
 
