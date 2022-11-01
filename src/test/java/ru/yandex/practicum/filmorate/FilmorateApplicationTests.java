@@ -42,7 +42,7 @@ class FilmorateApplicationTests {
             LocalDate.parse("1991-09-27"));
     private final User friend = new User(2L,"Lordi", "Морди", "olimp@mail.ru",
             LocalDate.parse("1997-07-21"));
-    private final User updateUser = new User(3L,"Logan", "Новое имя Валеры", "vadim@mail.ru",
+    private final User updateUser = new User(3L,"Logan", "Имя Валеры", "vadim@mail.ru",
             LocalDate.parse("1988-02-15"));
 
     private final MPA mpa = new MPA(1,"g");
