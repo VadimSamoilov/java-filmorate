@@ -10,7 +10,7 @@ import java.util.Set;
 
 @Data
 public class User {
-    private Long id;
+    private Long user_id;
     @NotNull
     @Email(regexp = ".+[@].+[\\\\.].+", message = "Неверный формат Email")
     private String email;
@@ -19,10 +19,33 @@ public class User {
     private String name;
     private Set<Long> friendsId;
 
-
     @PastOrPresent(message = "День рождения не может быть в будущем")
     @NotNull
-    private final LocalDate birthday;
+    private LocalDate birth_day;
+
+    public User() {
+
+    }
+
+
+    public void setUser_id(Long user_id) {
+        this.user_id = user_id;
+    }
+
+    public void setBirth_day(LocalDate birth_day) {
+        this.birth_day = birth_day;
+    }
+
+    public User(Long user_id, String login, String name, String email, LocalDate birth_day) {
+        this.user_id = user_id;
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.friendsId = friendsId;
+        this.birth_day = birth_day;
+    }
+
+
 
     // если имя пустое используем login
     public String getName() {
@@ -33,7 +56,7 @@ public class User {
         this.email = email;
         this.login = login;
         this.name = name;
-        this.birthday = birthday;
+        this.birth_day = birthday;
         this.friendsId = new HashSet<>();
     }
 
