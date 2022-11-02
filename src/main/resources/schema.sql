@@ -18,13 +18,6 @@ create table if not exists FRIENDS
 );
 
 
-create table if not exists STATUS
-(
-    STATUS_ID   INTEGER primary key auto_increment,
-    STATUS_NAME CHARACTER VARYING(50) not null
-);
-
-
 
 create table if not exists FILMS
 (

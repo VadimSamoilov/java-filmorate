@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.dao.UserStorage;
-import ru.yandex.practicum.filmorate.storage.inmemorydb.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.DbFilmsStorage;
 import ru.yandex.practicum.filmorate.storage.user.DBFriendsStorage;
 
 
@@ -27,12 +27,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FilmorateApplicationTests {
     private final UserStorage userStorage;
-    private final FilmStorage filmStorage;
+    private final DbFilmsStorage filmStorage;
     private final DBFriendsStorage friendsStorage;
 
     @Autowired
     public FilmorateApplicationTests(UserStorage userStorage,
-                                    FilmStorage filmStorage, DBFriendsStorage friendsStorage) {
+                                     DbFilmsStorage filmStorage, DBFriendsStorage friendsStorage) {
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;
         this.friendsStorage = friendsStorage;
