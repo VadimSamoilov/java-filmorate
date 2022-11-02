@@ -15,7 +15,6 @@ import java.util.List;
 @Slf4j
 public class UserService {
 
-    // private final UserStorage memoryUserStorage;
     private final DBFriendsStorage dbFriendsStorage;
     private final DbUserStorage dbUserStorage;
 
