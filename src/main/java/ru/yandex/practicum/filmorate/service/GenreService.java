@@ -2,42 +2,47 @@ package ru.yandex.practicum.filmorate.service;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.film.DbGenreStorage;
 
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class GenreService {
-    private final JdbcTemplate jdbcTemplate;
-    private static final String SELECT_FROM_GENRES = "SELECT * FROM GENRE";
-    private static final String SELECT_NAME_FROM_GENRES_WHERE_GENRE_ID =
-            "SELECT TITLE_GENRE FROM GENRE WHERE GENRE_ID = ?";
+    private DbGenreStorage genreStorage;
 
-    public GenreService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Autowired
+    public GenreService(DbGenreStorage genreStorage) {
+        this.genreStorage = genreStorage;
     }
 
-    public Collection<Genre> get() {
-        return jdbcTemplate.query(SELECT_FROM_GENRES, ((rs, rowNum) -> new Genre(
-                rs.getInt("genre_id"),
-                rs.getString("name"))
-        ));
+    public Collection<Genre> getGenre() {
+        return genreStorage.getGenres().stream()
+                .sorted(Comparator.comparing(Genre::getGenreId))
+                .collect(Collectors.toList());
     }
 
-    public Genre get(int id) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(SELECT_NAME_FROM_GENRES_WHERE_GENRE_ID, id);
-        if (userRows.next()) {
-            Genre genre = new Genre(
-                    id,
-                    userRows.getString("name")
-            );
-            log.info("Genre found = {} ", genre);
-            return genre;
-        } else throw new CustomValidationException(String.format("Genre not found: id=%d", id));
+    public Genre getGenreById(Integer id) {
+        return genreStorage.getGenreById(id);
+    }
+
+    public void putGenres(Film film) {
+        genreStorage.delete(film);
+        genreStorage.add(film);
+    }
+
+    public Set<Genre> getFilmGenres(Long filmId) {
+        return new HashSet<>(genreStorage.getFilmGenres(filmId));
     }
 }
