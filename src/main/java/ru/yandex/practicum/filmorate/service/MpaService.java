@@ -1,42 +1,32 @@
 package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
 import ru.yandex.practicum.filmorate.model.MPA;
+import ru.yandex.practicum.filmorate.storage.film.DbMpaStorage;
 
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class MpaService {
-    private final JdbcTemplate jdbcTemplate;
-    private static final String SELECT_FROM_MPA_RATING = "SELECT * FROM MPA";
-    private static final String SELECT_NAME_FROM_MPA_RATING_WHERE_MPA_ID =
-            "SELECT TITLE_MPA FROM MPA WHERE MPA_ID = ?";
+    private final DbMpaStorage mpaStorage;
 
-    public MpaService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Autowired
+    public MpaService(DbMpaStorage mpaStorage) {
+        this.mpaStorage = mpaStorage;
     }
 
-    public Collection<MPA> getMpa() {
-        return jdbcTemplate.query(SELECT_FROM_MPA_RATING, (rs, rowNum) -> new MPA(
-                rs.getInt("mpa_id"),
-                rs.getString("name"))
-        );
+    public Collection<MPA> getAllMpa() {
+        return mpaStorage.getAll().stream()
+                .sorted(Comparator.comparing(MPA::getMpaId))
+                .collect(Collectors.toList());
     }
 
-    public MPA get(int id) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(SELECT_NAME_FROM_MPA_RATING_WHERE_MPA_ID, id);
-        if (userRows.next()) {
-            MPA mpa = new MPA(
-                    id,
-                    userRows.getString("name")
-            );
-            log.info("Mpa found: {}", mpa);
-            return mpa;
-        } else throw new CustomValidationException(String.format("Mpa not found: id=%d", id));
+    public MPA getMpaById(Long id) {
+        return mpaStorage.getMpaId(id);
     }
 }
