@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
@@ -48,17 +47,16 @@ public class FilmService {
 
     // создание нового фильма
     public Film createNewFilm(Film film) {
-        validateFilms(film);
-
-        return dbFilmStorage.create(film);
+        findFilmById(film.getId());
+        return dbFilmStorage.save(film);
     }
 
     // обновление информации о фильме
     public Film updateFilm(Film film) {
-        final Film film1 = findFilmById(film.getFilm_id());
+        final Film film1 = findFilmById(film.getId());
         validateFilms(film);
         film.setRate(film1.getRate());
-        return dbFilmStorage.update(film);
+        return dbFilmStorage.save(film);
     }
 
     // удаление фильма по ID
@@ -79,6 +77,13 @@ public class FilmService {
         userService.findUserById(idUser);
         dbLikeStorage.addLike(idUser,idFilm);
     }
+
+//    public void removeLikeFilm(Long idFilm, Long idUser) {
+//        findFilmById(idFilm);
+//        findFilmById(idFilm);
+//        userService.findUserById(idUser);
+//        dbLikeStorage.addLike(idUser,idFilm);
+//    }
 
     public void removeLikeFilm(Long idFilm, Long idUser) {
         findFilmById(idFilm);

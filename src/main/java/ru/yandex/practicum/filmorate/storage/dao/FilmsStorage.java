@@ -7,11 +7,11 @@ import java.util.Optional;
 
 public interface FilmsStorage {
 
-    Film create(Film film);
+    Film save(Film film);
 
     void delete(Film film);
 
-    Film update(Film film);
+
 
     Optional<Film> getFilm(Long id);
 

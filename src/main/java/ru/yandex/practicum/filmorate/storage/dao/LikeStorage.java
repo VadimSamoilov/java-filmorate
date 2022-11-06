@@ -6,11 +6,9 @@ import java.util.List;
 
 public interface LikeStorage {
 
-    void addLike(long filmId,long userId);
+    void addLike(Long filmId, Long userId);
 
-    void updateRate(long filmId);
+    void removeLike(Long filmId,Long userId);
 
-    void removeLike(long filmId,long userId);
-
-    List<Film> getPopular(int count);
+    List<Film> getPopular(Integer count);
 }
