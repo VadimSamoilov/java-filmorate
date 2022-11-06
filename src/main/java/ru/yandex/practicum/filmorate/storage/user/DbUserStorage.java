@@ -6,11 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exeption.CustomValidationException;
+import ru.yandex.practicum.filmorate.exeption.UserNotFoundExeption;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -20,10 +23,11 @@ import java.util.Optional;
 @Component("userDbStorage")
 
 public class DbUserStorage implements ru.yandex.practicum.filmorate.storage.dao.UserStorage {
-    String CREATE_USER_QUERY = "insert into USERS(name, email, login, birth_day) " +
+    final String CREATE_USER_QUERY = "insert into USERS(login,name, email, BIRTHDAY) " +
             "values (?, ?, ?,?)";
-    String FIND_USERS_QUERY = "SELECT * FROM USERS";
-    String USER_ID_QUERY = "select * from USERS where USER_ID = ?";
+    final String FIND_USERS_QUERY = "SELECT * FROM USERS";
+    final String USER_ID_QUERY = "SELECT ID, LOGIN, NAME, EMAIL, BIRTHDAY FROM USERS WHERE user_id = ?";
+    final String UPDATE_USER = "UPDATE USERS SET login = ?,name = ?,  email = ?, birthday = ? WHERE id = ?";
 
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -35,46 +39,69 @@ public class DbUserStorage implements ru.yandex.practicum.filmorate.storage.dao.
     }
 
     @Override
-    public Optional<User> getUser(long id) {
+    public Optional<User> getUser(Long id) {
         // выполняем запрос к БД
-        return Optional.ofNullable(jdbcTemplate.query(USER_ID_QUERY, DbUserStorage::makeUser, id)
-                .stream().findAny().orElse(null));
+        if (id == null) {
+            throw new CustomValidationException("Передан пустой аргумент!");
+        }
+        User user;
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet("SELECT * FROM users WHERE ID = ?", id);
+        if (userRows.first()) {
+            user = new User(
+                    userRows.getInt("ID"),
+                    userRows.getString("email"),
+                    userRows.getString("login"),
+                    userRows.getString("name"),
+                    userRows.getDate("birthday").toLocalDate());
+        } else {
+            throw new UserNotFoundExeption("Пользователь с ID=" + id + " не найден!");
+        }
+        return Optional.of(user);
     }
 
     @Override
-    public User createUser(User user) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(CREATE_USER_QUERY, user.getName(), user.getEmail(),
-                user.getLogin(), Date.valueOf(user.getBirth_day()), keyHolder);
-        long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
-        user.setUser_id(id);
-        log.debug("Created user: {} with id: {}", user.getName(), id);
-        return user;
+    public User save(User user) {
+        if (user.getId() == null) {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(CREATE_USER_QUERY,
+                        new String[]{"id"});
+
+                ps.setString(1, user.getLogin());
+                ps.setString(2, user.getName());
+                ps.setString(3, user.getEmail());
+                ps.setDate(4, Date.valueOf(user.getBirthday()));
+                return ps;
+            }, keyHolder);
+            Long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
+            user.setId(id);
+            log.debug("Created user: {} with id: {}", user.getName(), id);
+            return user;
+        } else {
+            jdbcTemplate.update(UPDATE_USER,  user.getLogin(),
+                    user.getName(),user.getEmail(), Date.valueOf(user.getBirthday()), user.getId());
+            return user;
+        }
     }
 
     @Override
     public void deleteUser(Long id) {
         String DELETE_USER_QUERY = "DELETE FROM USERS" +
-                " WHERE USER_ID = ?";
+                " WHERE ID = ?";
         jdbcTemplate.update(DELETE_USER_QUERY, id);
     }
 
     @Override
     public User updateUser(User user) {
-        String UPDATE_USER_QUERY = "UPDATE USERS " +
-                "SET name = ? " +
-                ", email =  ?" +
-                ", login = ?" +
-                ", BIRTH_DAY = ?" +
-                " WHERE USER_ID = ?";
+        final String UPDATE_USER =
+                "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
 
-        if (jdbcTemplate.update(UPDATE_USER_QUERY,
-                user.getName(), user.getEmail(), user.getLogin(), user.getBirth_day(),
-                Math.toIntExact(user.getUser_id())
-        ) == 1) {
+        log.info(user.toString());
+        if ((jdbcTemplate.update(UPDATE_USER, user.getEmail(), user.getLogin(),
+                user.getName(), Date.valueOf(user.getBirthday()), user.getId())) == 1) {
             return user;
         } else {
-            throw new CustomValidationException("No user with such ID: " + user.getUser_id());
+            throw new CustomValidationException("No user with such ID: " + user.getId());
         }
     }
 
@@ -85,9 +112,12 @@ public class DbUserStorage implements ru.yandex.practicum.filmorate.storage.dao.
 
 
     static User makeUser(ResultSet rs, int rowNum) throws SQLException {
-        return new User(rs.getLong("user_id"),rs.getString("user_login"),
-                rs.getString("user_name"),rs.getString("user_email"),
-                Objects.requireNonNull(rs.getDate("BIRTH_DAY")).toLocalDate());
+        return new User(
+                rs.getInt("ID"),
+                rs.getString("LOGIN"),
+                rs.getString("NAME"),
+                rs.getString("EMAIL"),
+                rs.getDate("BIRTHDAY").toLocalDate());
     }
 
 }
