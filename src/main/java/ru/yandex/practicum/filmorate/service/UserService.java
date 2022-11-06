@@ -20,6 +20,13 @@ public class UserService {
 
     private final DBFriendsStorage dbFriendsStorage;
     private final DbUserStorage dbUserStorage;
+
+
+    public UserService(DBFriendsStorage dbFriendsStorage, DbUserStorage dbUserStorage) {
+        this.dbFriendsStorage = dbFriendsStorage;
+        this.dbUserStorage = dbUserStorage;
+    }
+
     public List<User> findAllUsers() {
         return dbUserStorage.getUsersBase();
     }
