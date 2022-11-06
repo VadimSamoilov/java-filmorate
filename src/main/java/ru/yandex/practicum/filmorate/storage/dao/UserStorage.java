@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserStorage {
-    Optional<User> getUser(long id) throws SQLException;
+    Optional<User> getUser(Long id) throws SQLException;
 
-    User createUser(User user);
+    User save (User user);
 
     void deleteUser(Long id);
 
