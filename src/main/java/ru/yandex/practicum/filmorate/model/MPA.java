@@ -8,6 +8,6 @@ import lombok.Data;
 public class MPA {
 
     private long mpaId;
-    private String name;
+    private String titleMpa;
 
 }
