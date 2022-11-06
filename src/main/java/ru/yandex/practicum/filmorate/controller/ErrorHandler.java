@@ -38,7 +38,7 @@ public class ErrorHandler {
     public ErrorResponse UserPostNotFoundException(final UserNotFoundExeption e) {
         log.info(e.getMessage());
         return new ErrorResponse(
-                e.getMessage()
+                "Пользователь не найден"
         );
     }
 
@@ -56,7 +56,7 @@ public class ErrorHandler {
     public ErrorResponse handleThrowable(final MethodArgumentNotValidException e) {
         log.info(e.getMessage());
         return new ErrorResponse(
-                e.getMessage()
+                "Ошибка в запросе"
         );
     }
 
